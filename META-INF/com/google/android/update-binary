@@ -1,0 +1,56 @@
+#!/sbin/sh
+#####################
+# XpengSideKey 安装引导
+# KernelSU 管理器刷入时使用其自带安装器（读取 customize.sh），本文件被忽略；
+# 仅在第三方 Recovery 手动刷入时作为兜底。
+#####################
+umask 022
+OUTFD=$2
+ZIPFILE=$3
+mount /data 2>/dev/null
+
+ui_print() {
+  echo "ui_print $1" > /proc/self/fd/$OUTFD
+  echo "ui_print " > /proc/self/fd/$OUTFD
+}
+abort() {
+  ui_print "$1"
+  exit 1
+}
+
+# 尝试加载 Magisk/KernelSU 提供的安装函数
+loaded=0
+for uf in \
+  /data/adb/magisk/util_functions.sh \
+  /sbin/.magisk/mirror/data/adb/magisk/util_functions.sh \
+  /data/adb/ksu/util_functions.sh; do
+  if [ -f "$uf" ]; then
+    . "$uf" && loaded=1 && break
+  fi
+done
+
+if [ "$loaded" = "1" ] && command -v install_module >/dev/null 2>&1; then
+  install_module
+  exit 0
+fi
+
+# 兜底：最小手动安装
+ui_print "- XpengSideKey: manual install mode"
+TMP=/dev/tmp/xsk_install
+rm -rf "$TMP" 2>/dev/null
+mkdir -p "$TMP" || abort "! mkdir failed"
+cd "$TMP" || abort "! cd failed"
+unzip -oq "$ZIPFILE" -x "META-INF/*" -d "$TMP" || abort "! unzip failed"
+[ -f "$TMP/module.prop" ] || abort "! module.prop not found"
+modid=$(grep '^id=' "$TMP/module.prop" | cut -d= -f2 | tr -d ' \r')
+[ -n "$modid" ] || abort "! bad module.prop"
+dest=/data/adb/modules/$modid
+rm -rf "$dest"
+mkdir -p "$dest"
+cp -a "$TMP/." "$dest/" || abort "! copy failed"
+find "$dest" -name "*.sh" -exec chmod 755 {} \; 2>/dev/null
+cd /
+rm -rf "$TMP"
+ui_print "- Installed to $dest"
+ui_print "- 重启后生效；建议使用 KernelSU 管理器管理"
+exit 0

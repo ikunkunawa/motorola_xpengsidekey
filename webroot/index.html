@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MotoS30侧键魔方</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="appbar">
+  <div class="appbar-title">
+    <svg viewBox="0 0 24 24" class="logo"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5zm0 2.2L18.6 8 12 11.8 5.4 8 12 4.2zM5 9.7l6 3.4v6.7l-6-3.4V9.7zm8 10.1v-6.7l6-3.4v6.7l-6 3.4z"/></svg>
+    <div class="tt">
+      <h1>侧键魔方</h1>
+      <span class="pill" id="statusPill"><i class="dot"></i><span id="statusText">加载中…</span></span>
+    </div>
+  </div>
+  <button class="iconbtn" id="themeBtn" aria-label="切换主题">
+    <svg viewBox="0 0 24 24" class="ic-sun"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+    <svg viewBox="0 0 24 24" class="ic-moon"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z" fill="currentColor"/></svg>
+  </button>
+</header>
+
+<div class="banner hidden" id="noKsu">未检测到 KernelSU WebUI 接口，请在 KernelSU 管理器 → 模块 → 「WebUI」中打开本页面。</div>
+
+<main>
+
+  <!-- ============ 绑定 ============ -->
+  <section class="page active" id="page-bind">
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>按键识别</span>
+      </div>
+      <div class="kv" id="keyInfo"></div>
+      <div class="row">
+        <button class="btn tonal" id="learnBtn">学习按键</button>
+        <span class="hint" id="learnHint">点击后 12 秒内按压左侧侧键（需守护进程运行中）</span>
+      </div>
+      <div class="learnbox hidden" id="learnBox">
+        <div class="learn-top">
+          <span class="spinner"></span>
+          <span id="learnCount">12</span> 秒内按压左侧侧键…
+        </div>
+        <input type="text" id="learnResult" readonly placeholder="捕获结果">
+        <div class="row end">
+          <button class="btn text" id="learnCancel">取消</button>
+          <button class="btn filled" id="learnSave" disabled>保存键值</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.7 1.4-3.1 3.1-3.1h4V7H7a5 5 0 0 0 0 10h4v-1.9H7c-1.7 0-3.1-1.4-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.7 0 3.1 1.4 3.1 3.1s-1.4 3.1-3.1 3.1h-4V17h4a5 5 0 0 0 0-10z"/></svg>
+        <span>触发绑定</span>
+        <button class="btn filled sm" id="saveBindsBtn">保存</button>
+      </div>
+
+      <div class="bind-row">
+        <div class="bind-label">单击</div>
+        <select id="bind_single" class="select"></select>
+        <pre class="cmdprev" id="prev_single"></pre>
+        <textarea id="ccmd_single" class="cmdinput hidden" rows="2" placeholder="自定义 shell 命令，如 am start -a android.intent.action.VIEW -d &quot;https://…&quot;"></textarea>
+        <button class="btn tonal sm testbtn" data-t="single">立即测试</button>
+      </div>
+
+      <div class="bind-row">
+        <div class="bind-label">双击</div>
+        <select id="bind_double" class="select"></select>
+        <pre class="cmdprev" id="prev_double"></pre>
+        <textarea id="ccmd_double" class="cmdinput hidden" rows="2" placeholder="自定义 shell 命令"></textarea>
+        <button class="btn tonal sm testbtn" data-t="double">立即测试</button>
+      </div>
+
+      <div class="bind-row">
+        <div class="bind-label">长按</div>
+        <select id="bind_long" class="select"></select>
+        <pre class="cmdprev" id="prev_long"></pre>
+        <textarea id="ccmd_long" class="cmdinput hidden" rows="2" placeholder="自定义 shell 命令"></textarea>
+        <button class="btn tonal sm testbtn" data-t="long">立即测试</button>
+      </div>
+      <p class="hint">绑定保存后立即生效（自动重启守护进程）；「立即测试」直接执行所选功能，敏感命令请先确认。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M17.6 9.5 21 5.7 19 4l-2.9 3.3A4.5 4.5 0 0 0 12 6a4.5 4.5 0 0 0-4.1 2.7L5 5.9 3 7.6l3.4 3.9-3.4 3.9L5 17l2.9-2.8A4.5 4.5 0 0 0 12 17a4.5 4.5 0 0 0 4.1-2.8L19 17l2-1.6-3.4-3.9z"/></svg>
+        <span>键位映射 (屏蔽系统默认行为)</span>
+      </div>
+      <div class="row between">
+        <span>将侧键 scancode 重映射为无效键码</span>
+        <label class="switch"><input type="checkbox" id="remapSwitch"><span class="track"><span class="thumb"></span></span></label>
+      </div>
+      <pre class="cmdprev" id="remapInfo"></pre>
+      <div class="row">
+        <input type="text" id="remapLabel" class="cmdinput" placeholder="AKEYCODE 标签，默认 UNKNOWN">
+        <button class="btn tonal sm" id="applyKlBtn">应用映射</button>
+      </div>
+      <p class="hint">重映射可防止 Moto 一键触达/全局搜索等默认行为与绑定冲突。overlay 方式修改，<b>重启手机后生效</b>，卸载模块自动还原。</p>
+      <p class="hint hidden" id="metaHint">未检测到元模块（如 meta-overlayfs）：键位映射暂不生效（纯脚本模式），守护与绑定不受影响；安装元模块并重启后自动启用。</p>
+    </div>
+
+  </section>
+
+  <!-- ============ 功能 ============ -->
+  <section class="page" id="page-actions">
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8z"/></svg>
+        <span>预设功能</span>
+      </div>
+      <div id="presetList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        <span>自定义功能</span>
+        <button class="btn filled sm" id="addCustomBtn">添加</button>
+      </div>
+      <p class="hint">在绑定页中可选择自定义功能槽位（custom_1 ~ custom_6）。名称仅支持字母/数字/空格/下划线/中划线。</p>
+      <div id="customList"></div>
+    </div>
+
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="page" id="page-settings">
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm0-13a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>
+        <span>守护进程</span>
+      </div>
+      <div class="row between">
+        <span>启用守护进程（开机自启）</span>
+        <label class="switch"><input type="checkbox" id="swEnabled"><span class="track"><span class="thumb"></span></span></label>
+      </div>
+      <div class="row">
+        <button class="btn tonal sm" id="btnRestartDaemon">重启守护</button>
+        <button class="btn text sm" id="btnStopDaemon">停止守护</button>
+        <span class="hint" id="daemonState"></span>
+      </div>
+      <p class="hint">内置看门狗：守护进程意外退出会自动拉起；「停止守护」后看门狗随之退出。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/></svg>
+        <span>触发与反馈</span>
+        <button class="btn filled sm" id="saveSettingsBtn">保存</button>
+      </div>
+      <div class="row between">
+        <span>触发时振动反馈</span>
+        <label class="switch"><input type="checkbox" id="swHaptic"><span class="track"><span class="thumb"></span></span></label>
+      </div>
+      <div class="slider-row">
+        <label>单击判定间隔 <b id="gapVal">300</b> ms</label>
+        <input type="range" id="rngGap" min="150" max="800" step="50">
+      </div>
+      <div class="slider-row">
+        <label>长按判定时间 <b id="longVal">550</b> ms</label>
+        <input type="range" id="rngLong" min="300" max="1500" step="50">
+      </div>
+      <p class="hint">间隔越大双击越容易触发但单击响应变慢；长按时间应大于单击间隔。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M4 20h16v-2H4v2zm0-6h16v-2H4v2zm0-8v2h16V6H4z"/></svg>
+        <span>日志</span>
+        <button class="btn tonal sm" id="btnLogRefresh">刷新</button>
+        <button class="btn text sm" id="btnLogClear">清空</button>
+      </div>
+      <pre class="logview" id="logView">(空)</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+        <span>配置备份</span>
+      </div>
+      <textarea id="cfgArea" class="cmdinput" rows="6" placeholder="导出配置粘贴到此处备份；导入时粘贴配置文本后点击导入"></textarea>
+      <div class="row wrap">
+        <button class="btn tonal sm" id="btnExport">导出</button>
+        <button class="btn tonal sm" id="btnCopyCfg">复制</button>
+        <button class="btn tonal sm" id="btnImport">导入</button>
+        <button class="btn text sm danger" id="btnResetCfg">恢复默认</button>
+      </div>
+      <p class="hint">也可选择本地 .prop 文件导入：<input type="file" id="cfgFile" accept=".prop,.txt,.conf" class="filebox"></p>
+    </div>
+
+  </section>
+
+  <!-- ============ 关于 ============ -->
+  <section class="page" id="page-about">
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        <span>关于</span>
+      </div>
+      <div class="kv">
+        <span class="k">模块版本</span><span class="v" id="aVer">-</span>
+        <span class="k">设备</span><span class="v" id="aDevice">-</span>
+        <span class="k">型号</span><span class="v" id="aModel">-</span>
+        <span class="k">系统</span><span class="v" id="aAndroid">-</span>
+        <span class="k">侧键识别</span><span class="v" id="aSc">-</span>
+        <span class="k">作者</span><span class="v">JIN</span>
+      </div>
+      <p class="hint">所有修改均为 KernelSU systemless overlay，卸载模块即 100% 复原，不触碰任何系统分区。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm-1 17.9A8 8 0 0 1 4 12c0-.6.1-1.2.2-1.8L9 15v1a2 2 0 0 0 2 2v1.9zm6.9-2.6A2 2 0 0 0 16 15h-1v-3a1 1 0 0 0-1-1H8v-2h2a1 1 0 0 0 1-1V7h2a2 2 0 0 0 2-2v-.4A8 8 0 0 1 19.9 17z"/></svg>
+        <span>环境诊断</span>
+        <button class="btn tonal sm" id="btnDiagnose">运行诊断</button>
+      </div>
+      <pre class="logview tall" id="diagOut">点击「运行诊断」获取按键/键位/SELinux 环境信息</pre>
+      <div class="row end"><button class="btn text sm" id="btnCopyDiag">复制诊断结果</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <svg viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8z"/></svg>
+        <span>功能介绍</span>
+      </div>
+      <div class="changelog">
+        <ul>
+          <li>侧键三种手势：单击、双击、长按，各自绑定一个功能</li>
+          <li>预设功能：微信扫一扫/付款码、支付宝扫一扫/付款码、响铃循环、免打扰、截屏、相机、语音助手</li>
+          <li>自定义：最多 6 个自定义命令功能，也可为每种手势单独指定命令</li>
+          <li>工具：按键学习、立即测试、环境诊断、运行日志、配置导入导出</li>
+          <li>可调触发间隔与长按时长，触发时振动反馈</li>
+          <li>守护进程内置看门狗，意外退出自动拉起</li>
+          <li>全程 systemless 实现，卸载模块立即完全复原</li>
+        </ul>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button class="tab active" data-page="bind">
+    <svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9 7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A6.98 6.98 0 0 0 19 13v-2c-1.8 0-3.3-.9-4.2-2.3l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7z"/></svg>
+    <span>绑定</span>
+  </button>
+  <button class="tab" data-page="actions">
+    <svg viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 9-12h-7l1-8z"/></svg>
+    <span>功能</span>
+  </button>
+  <button class="tab" data-page="settings">
+    <svg viewBox="0 0 24 24"><path d="M19.1 12.9a7.6 7.6 0 0 0 0-1.8l2.1-1.6c.2-.2.3-.5.1-.7l-2-3.4c-.1-.2-.4-.3-.6-.2l-2.5 1a7.6 7.6 0 0 0-1.6-.9l-.4-2.7c0-.3-.2-.4-.5-.4h-4c-.2 0-.4.2-.5.4l-.4 2.7c-.6.2-1.1.5-1.6.9l-2.5-1c-.2-.1-.5 0-.6.2l-2 3.4c-.1.2-.1.5.1.7l2.1 1.6a7.6 7.6 0 0 0 0 1.8l-2.1 1.6c-.2.2-.3.5-.1.7l2 3.4c.1.2.4.3.6.2l2.5-1c.5.4 1 .7 1.6.9l.4 2.7c0 .2.2.4.5.4h4c.2 0 .4-.2.5-.4l.4-2.7c.6-.2 1.1-.5 1.6-.9l2.5 1c.2.1.5 0 .6-.2l2-3.4c.1-.2.1-.5-.1-.7l-2.1-1.6zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+    <span>设置</span>
+  </button>
+  <button class="tab" data-page="about">
+    <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+    <span>关于</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-card">
+    <h3 id="modalTitle">确认</h3>
+    <pre class="modal-body" id="modalBody"></pre>
+    <div class="row end">
+      <button class="btn text" id="modalCancel">取消</button>
+      <button class="btn filled" id="modalOk">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

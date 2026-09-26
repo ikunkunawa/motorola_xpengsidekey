@@ -1,0 +1,7 @@
+# XpengSideKey sepolicy（KernelSU 模块级规则，不改系统 sepolicy）
+# /dev/input/* 标签为 u:object_r:input_device:s0（已实测确认）
+# 守护进程以 root(su) 域运行，以下规则授予读取输入设备的最小权限；
+# 若 su 域已有更宽权限，这些规则为冗余但无害。
+
+allow su input_device dir { getattr search open read };
+allow su input_device chr_file { getattr open read ioctl };

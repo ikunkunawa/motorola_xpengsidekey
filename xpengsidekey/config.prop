@@ -1,0 +1,53 @@
+# XpengSideKey 默认配置
+# 基于 xpeng 实机验证结果生成（gpio-keys / scancode 217 / Generic.kl）
+# 可通过 KernelSU WebUI 修改，勿手工添加换行
+
+# ---- 开关 ----
+enabled=1
+haptic=1
+
+# ---- 键位映射 (keylayout overlay) ----
+# remap_keycode_name 为 Android AKEYCODE 标签（无 KEY_ 前缀）
+# UNKNOWN: 框架层产生 KEYCODE_UNKNOWN，任何应用都不响应，从根源避开 Moto 处理
+remap_enabled=1
+remap_keycode=0
+remap_keycode_name=UNKNOWN
+
+# ---- 按键识别 ----
+key_scancode=217
+key_device_name=gpio-keys
+key_device_node=
+key_vid=
+key_pid=
+kl_source=/system/usr/keylayout/Generic.kl
+kl_overlay_rel=system/usr/keylayout/gpio-keys.kl
+detection_confident=1
+
+# ---- 触发时序 (毫秒) ----
+click_gap_ms=300
+long_press_ms=550
+
+# ---- 绑定 ----
+bind_single=wechat_scan
+bind_double=wechat_pay
+bind_long=ringer_cycle
+custom_single_cmd=
+custom_double_cmd=
+custom_long_cmd=
+
+# ---- 自定义功能槽位 (1-6) ----
+custom_1_name=
+custom_1_cmd=
+custom_2_name=
+custom_2_cmd=
+custom_3_name=
+custom_3_cmd=
+custom_4_name=
+custom_4_cmd=
+custom_5_name=
+custom_5_cmd=
+custom_6_name=
+custom_6_cmd=
+
+# ---- 日志 ----
+log_max_kb=256
